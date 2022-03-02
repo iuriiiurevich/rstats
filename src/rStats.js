@@ -90,7 +90,7 @@ window.rStats = function rStats ( settings ) {
 
     if ( !_settings.values ) _settings.values = {};
 
-    var _base, _div, _elHeight = 10, _elWidth = 200;
+    var _base, _div, _elHeight = 10, _elWidth = 50;
     var _perfCounters = {};
 
 
@@ -103,6 +103,7 @@ window.rStats = function rStats ( settings ) {
             _current = 0;
 
         var c = _def.color ? _def.color : '#666666';
+        var c2 = _def.warningColor ? _def.warningColor : "#b70000";
 
         var _dotCanvas = document.createElement( 'canvas' ),
             _dotCtx = _dotCanvas.getContext( '2d' );
@@ -123,7 +124,7 @@ window.rStats = function rStats ( settings ) {
         _alarmCanvas.height = 2 * _elHeight;
         _alarmCtx.fillStyle = '#444444';
         _alarmCtx.fillRect( 0, 0, 1, 2 * _elHeight );
-        _alarmCtx.fillStyle = '#b70000';
+        _alarmCtx.fillStyle = c2;
         _alarmCtx.fillRect( 0, _elHeight, 1, _elHeight );
         _alarmCtx.globalAlpha = 0.5;
         _alarmCtx.fillStyle = '#ffffff';

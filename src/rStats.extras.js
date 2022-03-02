@@ -1,4 +1,7 @@
-window.glStats = function () {
+// https://www.khronos.org/registry/webgl/specs/latest/2.0/#3.7.9
+// https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glDrawElements.xhtml
+
+window.glStats = function (WebGL2 = true) {
 
     var _rS = null;
 
@@ -17,36 +20,52 @@ window.glStats = function () {
         };
     }
 
-    WebGLRenderingContext.prototype.drawArrays = _h( WebGLRenderingContext.prototype.drawArrays, function () {
+    var context, drawArrays, drawElements, useProgram, bindTexture;
+
+    if (WebGL2) {
+        context = WebGL2RenderingContext;
+        drawArrays = 'drawArrays';
+        drawElements = 'drawElements';
+        useProgram = 'useProgram';
+        bindTexture = 'bindTexture';
+    } else {
+        context = WebGLRenderingContext;
+        drawArrays = 'drawArrays';
+        drawElements = 'drawElements';
+        useProgram = 'useProgram';
+        bindTexture = 'bindTexture';
+    }
+
+    context.prototype[drawArrays] = _h( context.prototype[drawArrays], function () {
         _totalDrawArraysCalls++;
         if ( arguments[ 0 ] == this.POINTS ) _totalPoints += arguments[ 2 ];
         else _totalVertices += arguments[ 2 ];
     } );
 
-    WebGLRenderingContext.prototype.drawElements = _h( WebGLRenderingContext.prototype.drawElements, function () {
+    context.prototype[drawElements] = _h( context.prototype[drawElements], function () {
         _totalDrawElementsCalls++;
         _totalFaces += arguments[ 1 ] / 3;
         _totalVertices += arguments[ 1 ];
     } );
 
-    WebGLRenderingContext.prototype.useProgram = _h( WebGLRenderingContext.prototype.useProgram, function () {
+    context.prototype[useProgram] = _h( context.prototype[useProgram], function () {
         _totalUseProgramCalls++;
     } );
 
-    WebGLRenderingContext.prototype.bindTexture = _h( WebGLRenderingContext.prototype.bindTexture, function () {
+    context.prototype[bindTexture] = _h( context.prototype[bindTexture], function () {
         _totalBindTexures++;
     } );
 
     var _values = {
         allcalls: {
             over: 3000,
-            caption: 'Calls (hook)'
+            caption: 'Calls'
         },
         drawelements: {
-            caption: 'drawElements (hook)'
+            caption: 'Calls: drawElements'
         },
         drawarrays: {
-            caption: 'drawArrays (hook)'
+            caption: 'Calls: drawArrays'
         }
     };
 
@@ -55,10 +74,11 @@ window.glStats = function () {
         values: [ 'allcalls', 'drawelements', 'drawarrays', 'useprogram', 'bindtexture', 'glfaces', 'glvertices', 'glpoints' ]
     } ];
 
-    var _fractions = [ {
-        base: 'allcalls',
-        steps: [ 'drawelements', 'drawarrays' ]
-    } ];
+    // var _fractions = [ {
+    //     base: 'allcalls',
+    //     steps: [ 'drawelements', 'drawarrays' ]
+    // } ];
+    var _fractions = [];
 
     function _update () {
         _rS( 'allcalls' ).set( _totalDrawArraysCalls + _totalDrawElementsCalls );
@@ -116,15 +136,15 @@ window.threeStats = function ( renderer ) {
         'renderer.info.render.calls': {
             caption: 'Calls'
         },
-        'renderer.info.render.faces': {
-            caption: 'Faces',
-            over: 1000
+        'renderer.info.render.triangles': {
+            caption: 'Triangles',
+            over: 10000
         },
         'renderer.info.render.points': {
             caption: 'Points'
         },
-        'renderer.info.render.vertices': {
-            caption: 'Vertices'
+        'renderer.info.render.lines': {
+            caption: 'Lines'
         }
     };
 
@@ -133,7 +153,7 @@ window.threeStats = function ( renderer ) {
         values: [ 'renderer.info.memory.geometries', 'renderer.info.programs', 'renderer.info.memory.textures' ]
     }, {
         caption: 'Three.js - Render',
-        values: [ 'renderer.info.render.calls', 'renderer.info.render.faces', 'renderer.info.render.points', 'renderer.info.render.vertices' ]
+        values: [ 'renderer.info.render.calls', 'renderer.info.render.triangles', 'renderer.info.render.points', 'renderer.info.render.lines' ]
     } ];
 
     var _fractions = [];
@@ -141,12 +161,12 @@ window.threeStats = function ( renderer ) {
     function _update () {
 
         _rS( 'renderer.info.memory.geometries' ).set( renderer.info.memory.geometries );
-        //_rS( 'renderer.info.programs' ).set( renderer.info.programs.length );
+        _rS( 'renderer.info.programs' ).set( renderer.info.programs.length );
         _rS( 'renderer.info.memory.textures' ).set( renderer.info.memory.textures );
         _rS( 'renderer.info.render.calls' ).set( renderer.info.render.calls );
-        _rS( 'renderer.info.render.faces' ).set( renderer.info.render.faces );
+        _rS( 'renderer.info.render.triangles' ).set( renderer.info.render.triangles );
         _rS( 'renderer.info.render.points' ).set( renderer.info.render.points );
-        _rS( 'renderer.info.render.vertices' ).set( renderer.info.render.vertices );
+        _rS( 'renderer.info.render.lines' ).set( renderer.info.render.lines );
 
     }
 
@@ -198,22 +218,24 @@ window.BrowserStats = function () {
             caption: 'Used Memory',
             average: true,
             avgMs: 1000,
-            over: 22
+            over: 100
         },
-        total: {
-            caption: 'Total Memory'
-        }
+        // total: {
+        //     caption: 'Total Memory'
+        // }
     };
 
     var _groups = [ {
         caption: 'Browser',
-        values: [ 'memory', 'total' ]
+        // values: [ 'memory', 'total' ]
+        values: [ 'memory' ]
     } ];
 
-    var _fractions = [ {
-        base: 'total',
-        steps: [ 'memory' ]
-    } ];
+    // var _fractions = [ {
+    //     base: 'total',
+    //     steps: [ 'memory' ]
+    // } ];
+    var _fractions = [];
 
     var log1024 = Math.log( 1024 );
 
@@ -231,7 +253,7 @@ window.BrowserStats = function () {
         _totalJSHeapSize = _size( memory.totalJSHeapSize );
 
         _rS( 'memory' ).set( _usedJSHeapSize );
-        _rS( 'total' ).set( _totalJSHeapSize );
+        // _rS( 'total' ).set( _totalJSHeapSize );
     }
 
     function _start () {
